@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MessageBoardBakend
 {
@@ -28,6 +31,7 @@ namespace MessageBoardBakend
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
+            services.AddDbContext<ApiContext>(opt => opt.UseInMemoryDatabase());
             services.AddCors(options => options.AddPolicy("Cors",
                 builder =>
                 {
@@ -44,8 +48,50 @@ namespace MessageBoardBakend
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("this is the secret phrase"));
+
+            app.UseJwtBearerAuthentication(new JwtBearerOptions
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = false,
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = signingKey,
+                    ValidateLifetime = false,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                }
+            });
+
             app.UseCors("Cors");
             app.UseMvc();
+
+            SeedData(app.ApplicationServices.GetService<ApiContext>());
+        }
+
+        public void SeedData(ApiContext context)
+        {
+            context.Messages.Add(new Models.Message
+            {
+                //Id = "1",
+                Owner = "Debasis1",
+                Text = "First Message"
+            });
+            context.Messages.Add(new Models.Message
+            {
+                //Id = "2",
+                Owner = "Debasis2",
+                Text = "Second Text"
+            });
+            context.Users.Add(new Models.User
+            {
+                Id = "1",
+                Email = "a.a.com",
+                FirstName = "Debasis",
+                Password = "a"
+            });
+            context.SaveChanges();
         }
     }
 }

@@ -12,29 +12,36 @@ namespace MessageBoardBakend.Controllers
     [Route("api/[controller]")]
     public class MessagesController : Controller
     {
-        static List<Models.Message> messages = new List<Models.Message>{
-                new Models.Message
-                {
-                    Owner="Debasis1",
-                    Text="First Message"
-                },
-                new Models.Message
-                {
-                    Owner="Debasis2",
-                    Text="Second Text"
-                },
-                new Models.Message
-                {
-                    Owner="Debasis3",
-                    Text="Third Text"
-                }
-            };
+        //static List<Models.Message> messages = new List<Models.Message>{
+        //        //new Models.Message
+        //        //{
+        //        //    Owner="Debasis1",
+        //        //    Text="First Message"
+        //        //},
+        //        //new Models.Message
+        //        //{
+        //        //    Owner="Debasis2",
+        //        //    Text="Second Text"
+        //        //},
+        //        //new Models.Message
+        //        //{
+        //        //    Owner="Debasis3",
+        //        //    Text="Third Text"
+        //        //}
+        //    };
+
+        readonly ApiContext context;
+        public MessagesController(ApiContext context)
+        {
+            this.context = context;
+        }
+
         // GET: api/values
         [HttpGet]
         public IEnumerable<Models.Message> Get()
         {
             //return new string[] { "value1", "value2" };
-            return messages;
+            return context.Messages;
             
         }
 
@@ -42,7 +49,7 @@ namespace MessageBoardBakend.Controllers
         public IEnumerable<Models.Message> Get(string name)
         {
             //return new string[] { "value1", "value2" };
-            return messages.FindAll(message => message.Owner == name);
+            return context.Messages.Where(message => message.Owner == name);
 
         }
 
@@ -57,8 +64,9 @@ namespace MessageBoardBakend.Controllers
         [HttpPost]
         public Models.Message Post([FromBody]Models.Message message)
         {
-            messages.Add(message);
-            return message;
+            var dbMessage = context.Messages.Add(message).Entity;
+            context.SaveChanges();
+            return dbMessage;
         }
 
         // PUT api/values/5
