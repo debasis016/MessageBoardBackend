@@ -9,6 +9,12 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace MessageBoardBakend.Controllers
 {
+    public class EditProfileData
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
     [Produces("application/json")]
     [Route("api/Users")]
     public class UsersController : Controller
@@ -20,13 +26,6 @@ namespace MessageBoardBakend.Controllers
             this.context = context;
         }
 
-        [Authorize]
-        [HttpGet("me")]
-        public ActionResult Get()
-        {
-            var id = HttpContext.User.Claims.First().Value;
-            return Ok(context.Users.SingleOrDefault(u => u.Id == id));
-        }
         // GET: api/values
         [HttpGet("{id}")]
         public ActionResult Get(string id)
@@ -39,6 +38,28 @@ namespace MessageBoardBakend.Controllers
             return Ok(user);
         }
 
-        
+        [Authorize]
+        [HttpGet("me")]
+        public ActionResult Get()
+        {
+            return Ok(GetSecureUser());
+        }
+
+        [Authorize]
+        [HttpPost("me")]
+        public ActionResult Post([FromBody] EditProfileData profileData)
+        {
+            var user = GetSecureUser();
+            user.FirstName = profileData.FirstName ?? user.FirstName;
+            user.LastName = profileData.LastName ?? user.LastName;
+            context.SaveChanges();
+            return Ok(user);
+        }
+
+        Models.User GetSecureUser()
+        {
+            var id = HttpContext.User.Claims.First().Value;
+            return context.Users.SingleOrDefault(u => u.Id == id);
+        }
     }
 }

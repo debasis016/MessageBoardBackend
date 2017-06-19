@@ -53,7 +53,7 @@ namespace MessageBoardBakend
             app.UseJwtBearerAuthentication(new JwtBearerOptions
             {
                 AutomaticAuthenticate = true,
-                AutomaticChallenge = false,
+                AutomaticChallenge = true,
                 TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
